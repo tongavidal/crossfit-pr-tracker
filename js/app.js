@@ -300,7 +300,12 @@ async function loadPersonalRecords() {
 // ------------------------------------
 
 function setDefaultRecordDate() {
-    recordDate.value = new Date().toLocaleDateString('en-CA');
+    const now = new Date();
+    const localDate = new Date(
+        now.getTime() - now.getTimezoneOffset() * 60000
+    );
+
+    recordDate.value = localDate.toISOString().slice(0, 10);
 }
 
 addRecordBtn.addEventListener('click', () => {
