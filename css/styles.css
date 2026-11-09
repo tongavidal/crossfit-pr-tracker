@@ -385,3 +385,97 @@ footer {
 }
 
 
+/* RECORD DIALOG */
+
+.record-dialog {
+    width: min(460px, calc(100% - 32px));
+    margin: auto;
+    padding: 0;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+
+.record-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.record-form {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.record-form label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.record-form input,
+.record-form select,
+.record-form textarea {
+    width: 100%;
+    padding: 13px;
+    color: var(--text);
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+}
+
+.record-form input:focus,
+.record-form select:focus,
+.record-form textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.record-form textarea {
+    resize: vertical;
+}
+
+.dialog-close {
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.record-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.secondary-button {
+    padding: 14px 20px;
+    color: var(--text);
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.record-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .record-form {
+        padding: 20px;
+    }
+
+    .record-form-actions button {
+        flex: 1;
+        padding: 12px;
+    }
+}
+
+
