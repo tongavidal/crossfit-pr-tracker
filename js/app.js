@@ -1,3 +1,4 @@
+import { supabase } from './supabase.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     const addRecordBtn = document.getElementById("addRecordBtn");
