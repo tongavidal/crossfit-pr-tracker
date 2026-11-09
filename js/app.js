@@ -10,3 +10,19 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("PR Tracker initialized successfully 💪");
 });
 
+async function testSupabaseConnection() {
+  const { data, error } = await supabase
+    .from('exercises')
+    .select('id, name, category')
+    .limit(5);
+
+  if (error) {
+    console.error('Error conectando con Supabase:', error);
+    return;
+  }
+
+  console.log('Conexión correcta. Ejercicios:', data);
+}
+
+testSupabaseConnection();
+
