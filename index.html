@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -12,7 +12,96 @@
 </head>
 <body>
 
-    <div class="app">
+    <!-- AUTHENTICATION -->
+    <section class="auth-section" id="authSection">
+        <div class="auth-card">
+
+            <a href="#" class="logo">
+                <span class="logo-icon">P</span>
+                PR TRACKER
+            </a>
+
+            <div class="auth-heading">
+                <p class="eyebrow">YOUR TRAINING JOURNEY</p>
+                <h1 id="authTitle">Welcome back<span>.</span></h1>
+                <p class="subtitle" id="authSubtitle">
+                    Sign in to track your personal records.
+                </p>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="loginForm">
+                <label for="loginEmail">Email</label>
+                <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="your@email.com"
+                    autocomplete="email"
+                    required
+                >
+
+                <label for="loginPassword">Password</label>
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Your password"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <button type="submit" class="primary-button">
+                    Sign in
+                </button>
+
+                <p class="auth-switch">
+                    Don't have an account?
+                    <button type="button" id="showSignupBtn">
+                        Create account
+                    </button>
+                </p>
+            </form>
+
+            <!-- SIGNUP FORM -->
+            <form id="signupForm" hidden>
+                <label for="signupEmail">Email</label>
+                <input
+                    type="email"
+                    id="signupEmail"
+                    placeholder="your@email.com"
+                    autocomplete="email"
+                    required
+                >
+
+                <label for="signupPassword">Password</label>
+                <input
+                    type="password"
+                    id="signupPassword"
+                    placeholder="At least 6 characters"
+                    autocomplete="new-password"
+                    minlength="6"
+                    required
+                >
+
+                <button type="submit" class="primary-button">
+                    Create account
+                </button>
+
+                <p class="auth-switch">
+                    Already have an account?
+                    <button type="button" id="showLoginBtn">
+                        Sign in
+                    </button>
+                </p>
+            </form>
+
+            <p id="authMessage" class="auth-message" role="status"></p>
+
+        </div>
+    </section>
+
+
+    <!-- MAIN APPLICATION -->
+    <div class="app" id="app" hidden>
 
         <header class="header">
             <a href="#" class="logo">
@@ -22,7 +111,10 @@
 
             <div class="user-info">
                 <span class="user-avatar">U</span>
-                <span>My account</span>
+                <span id="currentUserEmail">My account</span>
+                <button id="logoutBtn" type="button">
+                    Sign out
+                </button>
             </div>
         </header>
 
@@ -46,13 +138,13 @@
 
                 <article class="stat-card">
                     <p>TOTAL EXERCISES</p>
-                    <h2 id="totalExercises">4</h2>
+                    <h2 id="totalExercises">0</h2>
                     <span>Tracked exercises</span>
                 </article>
 
                 <article class="stat-card">
                     <p>PERSONAL RECORDS</p>
-                    <h2 id="totalRecords">4</h2>
+                    <h2 id="totalRecords">0</h2>
                     <span>Current best lifts</span>
                 </article>
 
@@ -72,51 +164,13 @@
                         <h2>My exercises</h2>
                     </div>
 
-                    <span class="record-count">4 EXERCISES</span>
+                    <span class="record-count" id="recordCount">
+                        0 EXERCISES
+                    </span>
                 </div>
 
                 <div class="records-grid" id="recordsGrid">
-
-                    <article class="record-card">
-                        <div class="record-top">
-                            <span class="category">STRENGTH</span>
-                            <span class="record-icon">🏋️</span>
-                        </div>
-                        <h3>Back Squat</h3>
-                        <div class="weight">140 <small>kg</small></div>
-                        <p class="record-date">Last PR · 09 Nov 2026</p>
-                    </article>
-
-                    <article class="record-card">
-                        <div class="record-top">
-                            <span class="category">STRENGTH</span>
-                            <span class="record-icon">🔥</span>
-                        </div>
-                        <h3>Deadlift</h3>
-                        <div class="weight">180 <small>kg</small></div>
-                        <p class="record-date">Last PR · 02 Nov 2026</p>
-                    </article>
-
-                    <article class="record-card">
-                        <div class="record-top">
-                            <span class="category">WEIGHTLIFTING</span>
-                            <span class="record-icon">⚡</span>
-                        </div>
-                        <h3>Clean & Jerk</h3>
-                        <div class="weight">90 <small>kg</small></div>
-                        <p class="record-date">Last PR · 28 Oct 2026</p>
-                    </article>
-
-                    <article class="record-card">
-                        <div class="record-top">
-                            <span class="category">STRENGTH</span>
-                            <span class="record-icon">💪</span>
-                        </div>
-                        <h3>Bench Press</h3>
-                        <div class="weight">100 <small>kg</small></div>
-                        <p class="record-date">Last PR · 20 Oct 2026</p>
-                    </article>
-
+                    <!-- Personal records will be loaded from Supabase -->
                 </div>
 
             </section>
@@ -133,3 +187,4 @@
 
 </body>
 </html>
+```
