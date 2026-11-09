@@ -1,21 +1,135 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My PR Tracker</title>
+    <meta name="theme-color" content="#101114">
+
+    <title>PR Tracker</title>
+
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <h1>My PR Tracker 💪</h1>
-    <p>Mi registro personal de CrossFit y gimnasio.</p>
 
-    <h2>Mis ejercicios</h2>
-    <ul>
-        <li>Back Squat</li>
-        <li>Deadlift</li>
-        <li>Clean</li>
-        <li>Snatch</li>
-        <li>Bench Press</li>
-    </ul>
+    <div class="app">
+
+        <header class="header">
+            <a href="#" class="logo">
+                <span class="logo-icon">P</span>
+                PR TRACKER
+            </a>
+
+            <div class="user-info">
+                <span class="user-avatar">U</span>
+                <span>My account</span>
+            </div>
+        </header>
+
+        <main class="main">
+
+            <section class="welcome">
+                <div>
+                    <p class="eyebrow">YOUR TRAINING JOURNEY</p>
+                    <h1>Personal Records<span>.</span></h1>
+                    <p class="subtitle">
+                        Track your progress. Beat your limits.
+                    </p>
+                </div>
+
+                <button class="primary-button" id="addRecordBtn">
+                    + Add record
+                </button>
+            </section>
+
+            <section class="stats-grid">
+
+                <article class="stat-card">
+                    <p>TOTAL EXERCISES</p>
+                    <h2 id="totalExercises">4</h2>
+                    <span>Tracked exercises</span>
+                </article>
+
+                <article class="stat-card">
+                    <p>PERSONAL RECORDS</p>
+                    <h2 id="totalRecords">4</h2>
+                    <span>Current best lifts</span>
+                </article>
+
+                <article class="stat-card highlight">
+                    <p>TRAINING STATUS</p>
+                    <h2>ACTIVE</h2>
+                    <span>Keep pushing!</span>
+                </article>
+
+            </section>
+
+            <section class="records-section">
+
+                <div class="section-header">
+                    <div>
+                        <p class="eyebrow">YOUR PERFORMANCE</p>
+                        <h2>My exercises</h2>
+                    </div>
+
+                    <span class="record-count">4 EXERCISES</span>
+                </div>
+
+                <div class="records-grid" id="recordsGrid">
+
+                    <article class="record-card">
+                        <div class="record-top">
+                            <span class="category">STRENGTH</span>
+                            <span class="record-icon">🏋️</span>
+                        </div>
+                        <h3>Back Squat</h3>
+                        <div class="weight">140 <small>kg</small></div>
+                        <p class="record-date">Last PR · 09 Nov 2026</p>
+                    </article>
+
+                    <article class="record-card">
+                        <div class="record-top">
+                            <span class="category">STRENGTH</span>
+                            <span class="record-icon">🔥</span>
+                        </div>
+                        <h3>Deadlift</h3>
+                        <div class="weight">180 <small>kg</small></div>
+                        <p class="record-date">Last PR · 02 Nov 2026</p>
+                    </article>
+
+                    <article class="record-card">
+                        <div class="record-top">
+                            <span class="category">WEIGHTLIFTING</span>
+                            <span class="record-icon">⚡</span>
+                        </div>
+                        <h3>Clean & Jerk</h3>
+                        <div class="weight">90 <small>kg</small></div>
+                        <p class="record-date">Last PR · 28 Oct 2026</p>
+                    </article>
+
+                    <article class="record-card">
+                        <div class="record-top">
+                            <span class="category">STRENGTH</span>
+                            <span class="record-icon">💪</span>
+                        </div>
+                        <h3>Bench Press</h3>
+                        <div class="weight">100 <small>kg</small></div>
+                        <p class="record-date">Last PR · 20 Oct 2026</p>
+                    </article>
+
+                </div>
+
+            </section>
+
+        </main>
+
+        <footer>
+            PR TRACKER · BUILT FOR PROGRESS
+        </footer>
+
+    </div>
+
+    <script src="js/app.js"></script>
+
 </body>
 </html>
