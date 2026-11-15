@@ -7,7 +7,7 @@
 
     <title>PR Tracker</title>
 
-    <link rel="stylesheet" href="css/styles.css?v=4">
+    <link rel="stylesheet" href="css/styles.css?v=5">
 </head>
 <body>
 
@@ -141,6 +141,28 @@
             </section>
 
             
+            <dialog id="historyDialog" class="record-dialog history-dialog" aria-labelledby="historyTitle">
+                <div class="history-content">
+                    <div class="section-header">
+                        <h2 id="historyTitle"></h2>
+                        <form method="dialog">
+                            <button type="submit" class="dialog-close" aria-label="Close history" autofocus>✕</button>
+                        </form>
+                    </div>
+                    <div id="historyBest" class="history-best" hidden>
+                        <div>
+                            <h3>Personal best</h3>
+                            <p id="historyBestDate" class="record-date"></p>
+                        </div>
+                        <p id="historyBestWeight" class="weight"></p>
+                    </div>
+                    <h3 class="history-lifts-title">Lift history</h3>
+                    <ul id="historyList" class="history-list"></ul>
+                    <p id="historyMessage" class="history-message" role="status"></p>
+                    <button id="historyMore" class="secondary-button" type="button" hidden>Load more</button>
+                </div>
+            </dialog>
+
             <!-- ADD RECORD DIALOG -->
             <dialog id="recordDialog" class="record-dialog" aria-labelledby="recordDialogTitle">
                 <form id="recordForm" class="record-form">
@@ -193,7 +215,7 @@
 
     </div>
 
-    <script type="module" src="js/app.js?v=4"></script>
+    <script type="module" src="js/app.js?v=5"></script>
 
 </body>
 </html>

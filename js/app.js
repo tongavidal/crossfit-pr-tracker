@@ -33,6 +33,17 @@ const saveRecordBtn = document.getElementById('saveRecordBtn');
 
 const recordsGrid = document.getElementById('recordsGrid');
 const recordSummary = document.getElementById('recordSummary');
+const historyDialog = document.getElementById('historyDialog');
+const historyTitle = document.getElementById('historyTitle');
+const historyBest = document.getElementById('historyBest');
+const historyBestDate = document.getElementById('historyBestDate');
+const historyBestWeight = document.getElementById('historyBestWeight');
+const historyList = document.getElementById('historyList');
+const historyMessage = document.getElementById('historyMessage');
+const historyMore = document.getElementById('historyMore');
+
+const HISTORY_PAGE_SIZE = 25;
+let activeHistory = null;
 
 let currentSession = null;
 let availableExercises = [];
@@ -192,19 +203,21 @@ async function loadExercises() {
 // ------------------------------------
 
 async function loadPersonalRecords() {
+    const userId = currentSession?.user.id;
+    if (!userId) return;
+
     const { data, error } = await supabase
         .from('personal_records')
         .select(`
-            id,
+            exercise_id,
             weight_kg,
             recorded_at,
-            notes,
-            exercises (
-                name,
-                category
-            )
+            exercises (name)
         `)
+        .eq('user_id', userId)
         .order('recorded_at', { ascending: false });
+
+    if (currentSession?.user.id !== userId) return;
 
     if (error) {
         console.error('Error loading personal records:', error);
@@ -222,11 +235,11 @@ async function loadPersonalRecords() {
 
         if (!exercise) return;
 
-        const existing = bestRecords.get(exercise.name);
+        const existing = bestRecords.get(record.exercise_id);
 
         if (!existing || Number(record.weight_kg) >
             Number(existing.weight_kg)) {
-            bestRecords.set(exercise.name, {
+            bestRecords.set(record.exercise_id, {
                 ...record,
                 exercise
             });
@@ -244,35 +257,34 @@ async function loadPersonalRecords() {
     }
 
     bestRecords.forEach((record) => {
-        const card = document.createElement('article');
+        const card = document.createElement('button');
+        card.type = 'button';
         card.className = 'record-card';
+        card.setAttribute('aria-haspopup', 'dialog');
+        card.addEventListener('click', () => openExerciseHistory(record));
 
-        const details = document.createElement('div');
+        const details = document.createElement('span');
         details.className = 'record-details';
 
-        const title = document.createElement('h3');
+        const title = document.createElement('span');
+        title.className = 'record-name';
         title.textContent = record.exercise.name;
 
-        const weight = document.createElement('div');
+        const weight = document.createElement('span');
         weight.className = 'weight';
-        weight.textContent =
-            `${Number(record.weight_kg).toLocaleString('es-ES')} `;
+        renderWeight(weight, record.weight_kg);
 
-        const unit = document.createElement('small');
-        unit.textContent = 'kg';
-        weight.appendChild(unit);
-
-        const date = document.createElement('p');
+        const date = document.createElement('span');
         date.className = 'record-date';
+        date.textContent = formatRecordDate(record.recorded_at);
 
-        const formattedDate = new Date(
-            `${record.recorded_at}T00:00:00`
-        ).toLocaleDateString('es-ES');
-
-        date.textContent = formattedDate;
+        const chevron = document.createElement('span');
+        chevron.className = 'record-chevron';
+        chevron.setAttribute('aria-hidden', 'true');
+        chevron.textContent = '›';
 
         details.append(title, date);
-        card.append(details, weight);
+        card.append(details, weight, chevron);
         recordsGrid.appendChild(card);
     });
 
@@ -283,6 +295,132 @@ async function loadPersonalRecords() {
 
     console.log('Personal records loaded:', records);
 }
+
+// ------------------------------------
+// EXERCISE HISTORY
+// ------------------------------------
+
+function formatRecordDate(value) {
+    return new Date(`${value}T00:00:00`).toLocaleDateString('es-ES');
+}
+
+function renderWeight(element, value) {
+    const unit = document.createElement('small');
+    unit.textContent = 'kg';
+    element.textContent = `${Number(value).toLocaleString('es-ES')} `;
+    element.appendChild(unit);
+}
+
+function openExerciseHistory(record) {
+    if (!currentSession) return;
+
+    activeHistory = {
+        exerciseId: record.exercise_id,
+        userId: currentSession.user.id,
+        offset: 0,
+        shownIds: new Set()
+    };
+
+    historyTitle.textContent = record.exercise.name;
+    showHistoryBest(record);
+    historyList.replaceChildren();
+    historyMore.hidden = true;
+    historyMore.disabled = false;
+    historyDialog.showModal();
+    loadHistoryPage();
+}
+
+function showHistoryBest(record) {
+    renderWeight(historyBestWeight, record.weight_kg);
+    historyBestDate.textContent = formatRecordDate(record.recorded_at);
+    historyBest.hidden = false;
+}
+
+function appendHistoryLift(lift) {
+    const item = document.createElement('li');
+    const line = document.createElement('div');
+    line.className = 'history-lift-line';
+
+    const date = document.createElement('time');
+    date.dateTime = lift.recorded_at;
+    date.textContent = formatRecordDate(lift.recorded_at);
+
+    const weight = document.createElement('span');
+    weight.className = 'weight';
+    renderWeight(weight, lift.weight_kg);
+
+    line.append(date, weight);
+    item.appendChild(line);
+
+    if (lift.notes?.trim()) {
+        const notes = document.createElement('p');
+        notes.className = 'history-note';
+        notes.textContent = lift.notes;
+        item.appendChild(notes);
+    }
+
+    historyList.appendChild(item);
+}
+
+async function loadHistoryPage() {
+    const history = activeHistory;
+    if (!history || historyMore.disabled) return;
+
+    historyMore.disabled = true;
+    historyMessage.textContent = 'Loading lifts…';
+
+    const query = (columns) => supabase
+        .from('personal_records')
+        .select(columns)
+        .eq('user_id', history.userId)
+        .eq('exercise_id', history.exerciseId);
+
+    try {
+        const [page, best] = await Promise.all([
+            query('id, weight_kg, recorded_at, notes')
+                .order('recorded_at', { ascending: false })
+                .order('id', { ascending: false })
+                .range(history.offset, history.offset + HISTORY_PAGE_SIZE),
+            history.offset === 0
+                ? query('weight_kg, recorded_at')
+                    .order('weight_kg', { ascending: false })
+                    .order('recorded_at', { ascending: false })
+                    .limit(1)
+                : null
+        ]);
+
+        if (activeHistory !== history || !historyDialog.open) return;
+        if (page.error || best?.error) throw page.error || best.error;
+
+        if (best) {
+            const personalBest = best.data?.[0];
+            if (personalBest) showHistoryBest(personalBest);
+            else historyBest.hidden = true;
+        }
+
+        const lifts = page.data || [];
+        for (const lift of lifts.slice(0, HISTORY_PAGE_SIZE)) {
+            if (history.shownIds.has(lift.id)) continue;
+            appendHistoryLift(lift);
+            history.shownIds.add(lift.id);
+        }
+
+        history.offset += HISTORY_PAGE_SIZE;
+        historyMore.hidden = lifts.length <= HISTORY_PAGE_SIZE;
+        historyMore.textContent = 'Load more';
+        historyMessage.textContent = history.shownIds.size ? '' : 'No lifts recorded yet.';
+    } catch (error) {
+        if (activeHistory !== history || !historyDialog.open) return;
+        console.error('Error loading exercise history:', error);
+        historyMessage.textContent = 'Could not load lifts.';
+        historyMore.textContent = 'Try again';
+        historyMore.hidden = false;
+    } finally {
+        if (activeHistory === history) historyMore.disabled = false;
+    }
+}
+
+historyMore.addEventListener('click', loadHistoryPage);
 
 // ------------------------------------
 // RECORD DIALOG
@@ -408,6 +546,13 @@ async function updateApplication(session) {
         if (recordDialog.open) {
             recordDialog.close();
         }
+        if (historyDialog.open) historyDialog.close();
+        activeHistory = null;
+        historyTitle.textContent = '';
+        historyBest.hidden = true;
+        historyBestDate.textContent = '';
+        historyBestWeight.replaceChildren();
+        historyList.replaceChildren();
     }
 }
 
