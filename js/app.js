@@ -32,6 +32,7 @@ const recordMessage = document.getElementById('recordMessage');
 const saveRecordBtn = document.getElementById('saveRecordBtn');
 
 const recordsGrid = document.getElementById('recordsGrid');
+const recordSummary = document.getElementById('recordSummary');
 
 let currentSession = null;
 let availableExercises = [];
@@ -207,6 +208,7 @@ async function loadPersonalRecords() {
 
     if (error) {
         console.error('Error loading personal records:', error);
+        recordSummary.textContent = '';
         recordsGrid.textContent =
             'Could not load your personal records.';
         return;
@@ -245,18 +247,8 @@ async function loadPersonalRecords() {
         const card = document.createElement('article');
         card.className = 'record-card';
 
-        const top = document.createElement('div');
-        top.className = 'record-top';
-
-        const category = document.createElement('span');
-        category.className = 'category';
-        category.textContent = record.exercise.category;
-
-        const icon = document.createElement('span');
-        icon.className = 'record-icon';
-        icon.textContent = '🏋️';
-
-        top.append(category, icon);
+        const details = document.createElement('div');
+        details.className = 'record-details';
 
         const title = document.createElement('h3');
         title.textContent = record.exercise.name;
@@ -277,20 +269,17 @@ async function loadPersonalRecords() {
             `${record.recorded_at}T00:00:00`
         ).toLocaleDateString('es-ES');
 
-        date.textContent = `Personal best · ${formattedDate}`;
+        date.textContent = formattedDate;
 
-        card.append(top, title, weight, date);
+        details.append(title, date);
+        card.append(details, weight);
         recordsGrid.appendChild(card);
     });
 
-    document.getElementById('totalExercises').textContent =
-        bestRecords.size;
-
-    document.getElementById('totalRecords').textContent =
-        bestRecords.size;
-
-    document.getElementById('recordCount').textContent =
-        `${bestRecords.size} EXERCISES`;
+    const count = bestRecords.size;
+    const exerciseLabel = count === 1 ? 'exercise' : 'exercises';
+    const recordLabel = count === 1 ? 'personal record' : 'personal records';
+    recordSummary.textContent = `${count} ${exerciseLabel} · ${count} ${recordLabel}`;
 
     console.log('Personal records loaded:', records);
 }
@@ -311,6 +300,7 @@ function setDefaultRecordDate() {
 addRecordBtn.addEventListener('click', () => {
     recordMessage.textContent = '';
     recordForm.reset();
+    recordNotes.closest('details').open = false;
     setDefaultRecordDate();
     recordDialog.showModal();
 });
@@ -341,13 +331,20 @@ recordForm.addEventListener('submit', async (event) => {
     }
 
     const exerciseId = exerciseSelect.value;
-    const weight = Number(recordWeight.value);
+    const weightInput = recordWeight.value.trim();
+    const weight = Number(weightInput.replace(',', '.'));
     const date = recordDate.value;
     const notes = recordNotes.value.trim();
 
-    if (!exerciseId || !weight || weight <= 0 || !date) {
+    if (!exerciseId || !weightInput || !date) {
         recordMessage.textContent =
             'Please complete all required fields.';
+        return;
+    }
+
+    if (!/^\d*(?:[.,]\d{1,2})?$/.test(weightInput) || weight < 0.01 || weight > 9999) {
+        recordMessage.textContent = 'Enter a weight from 0.01 to 9999 kg with up to two decimal places.';
+        recordWeight.focus();
         return;
     }
 
@@ -405,6 +402,8 @@ async function updateApplication(session) {
         app.hidden = true;
         authSection.hidden = false;
         currentUserEmail.textContent = 'My account';
+        recordSummary.textContent = '';
+        recordsGrid.replaceChildren();
 
         if (recordDialog.open) {
             recordDialog.close();
