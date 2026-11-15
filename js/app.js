@@ -379,7 +379,7 @@ function openWeightPercentages(record) {
     renderWeight(percentBest, record.weight_kg);
     percentRows.replaceChildren();
 
-    for (let percent = 50; percent <= 100; percent += 5) {
+    for (let percent = 100; percent >= 50; percent -= 5) {
         const row = document.createElement('tr');
         const label = document.createElement('th');
         label.scope = 'row';
