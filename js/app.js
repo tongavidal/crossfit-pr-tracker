@@ -47,6 +47,7 @@ let activeHistory = null;
 
 let currentSession = null;
 let availableExercises = [];
+let recentExerciseIds = [];
 
 // ------------------------------------
 // AUTHENTICATION UI
@@ -167,10 +168,14 @@ signupForm.addEventListener('submit', async (event) => {
 // ------------------------------------
 
 async function loadExercises() {
+    const userId = currentSession?.user.id;
+
     const { data, error } = await supabase
         .from('exercises')
         .select('id, name, category')
         .order('name');
+
+    if (currentSession?.user.id !== userId) return;
 
     if (error) {
         console.error('Error loading exercises:', error);
@@ -180,7 +185,11 @@ async function loadExercises() {
     }
 
     availableExercises = data || [];
+    if (!recordDialog.open) renderExerciseOptions();
+}
 
+function renderExerciseOptions() {
+    const selectedId = exerciseSelect.value;
     exerciseSelect.replaceChildren();
 
     const placeholder = document.createElement('option');
@@ -188,14 +197,37 @@ async function loadExercises() {
     placeholder.textContent = 'Select an exercise';
     exerciseSelect.appendChild(placeholder);
 
-    availableExercises.forEach((exercise) => {
-        const option = document.createElement('option');
-        option.value = exercise.id;
-        option.textContent = exercise.name;
-        exerciseSelect.appendChild(option);
-    });
+    const exercisesById = new Map(availableExercises.map(exercise => [String(exercise.id), exercise]));
+    const recent = recentExerciseIds.map(id => exercisesById.get(id)).filter(Boolean);
+    const recentIds = new Set(recent.map(exercise => String(exercise.id)));
+    const others = availableExercises.filter(exercise => !recentIds.has(String(exercise.id)));
 
-    console.log('Exercises loaded:', availableExercises);
+    function addOptions(container, exercises) {
+        for (const exercise of exercises) {
+            const option = document.createElement('option');
+            option.value = String(exercise.id);
+            option.textContent = exercise.name;
+            container.appendChild(option);
+        }
+    }
+
+    if (recent.length) {
+        const group = document.createElement('optgroup');
+        group.label = 'Recent exercises';
+        addOptions(group, recent);
+        exerciseSelect.appendChild(group);
+    }
+
+    if (recent.length && others.length) {
+        const group = document.createElement('optgroup');
+        group.label = 'Other exercises';
+        addOptions(group, others);
+        exerciseSelect.appendChild(group);
+    } else {
+        addOptions(exerciseSelect, others);
+    }
+
+    exerciseSelect.value = exercisesById.has(selectedId) ? selectedId : '';
 }
 
 // ------------------------------------
@@ -206,28 +238,31 @@ async function loadPersonalRecords() {
     const userId = currentSession?.user.id;
     if (!userId) return;
 
-    const { data, error } = await supabase
-        .from('personal_records')
-        .select(`
-            exercise_id,
-            weight_kg,
-            recorded_at,
-            exercises (name)
-        `)
-        .eq('user_id', userId)
-        .order('recorded_at', { ascending: false });
+    const pageSize = 500;
+    const records = [];
 
-    if (currentSession?.user.id !== userId) return;
+    for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await supabase
+            .from('personal_records')
+            .select('exercise_id, weight_kg, recorded_at, exercises (name)')
+            .eq('user_id', userId)
+            .order('recorded_at', { ascending: false })
+            .order('id', { ascending: false })
+            .range(offset, offset + pageSize - 1);
 
-    if (error) {
-        console.error('Error loading personal records:', error);
-        recordSummary.textContent = '';
-        recordsGrid.textContent =
-            'Could not load your personal records.';
-        return;
+        if (currentSession?.user.id !== userId) return;
+
+        if (error) {
+            console.error('Error loading personal records:', error);
+            recordSummary.textContent = '';
+            recordsGrid.textContent = 'Could not load your personal records.';
+            return;
+        }
+
+        records.push(...data);
+        if (data.length < pageSize) break;
     }
 
-    const records = data || [];
     const bestRecords = new Map();
 
     records.forEach((record) => {
@@ -245,6 +280,9 @@ async function loadPersonalRecords() {
             });
         }
     });
+
+    recentExerciseIds = Array.from(bestRecords.keys(), String).slice(0, 5);
+    if (availableExercises.length && !recordDialog.open) renderExerciseOptions();
 
     recordsGrid.replaceChildren();
 
@@ -285,15 +323,25 @@ async function loadPersonalRecords() {
 
         details.append(title, date);
         card.append(details, weight, chevron);
-        recordsGrid.appendChild(card);
+        const quickLog = document.createElement('button');
+        quickLog.type = 'button';
+        quickLog.className = 'record-quick-log';
+        quickLog.textContent = '+';
+        quickLog.setAttribute('aria-label', 'Log a lift for ' + record.exercise.name);
+        quickLog.setAttribute('aria-haspopup', 'dialog');
+        quickLog.addEventListener('click', () => openRecordDialog(record.exercise_id, record.exercise.name));
+
+        const row = document.createElement('article');
+        row.className = 'record-row';
+        row.append(card, quickLog);
+        recordsGrid.appendChild(row);
     });
 
-    const count = bestRecords.size;
-    const exerciseLabel = count === 1 ? 'exercise' : 'exercises';
-    const recordLabel = count === 1 ? 'personal record' : 'personal records';
-    recordSummary.textContent = `${count} ${exerciseLabel} · ${count} ${recordLabel}`;
-
-    console.log('Personal records loaded:', records);
+    const exerciseCount = bestRecords.size;
+    const liftCount = records.length;
+    const exerciseLabel = exerciseCount === 1 ? 'exercise' : 'exercises';
+    const liftLabel = liftCount === 1 ? 'lift' : 'lifts';
+    recordSummary.textContent = exerciseCount + ' ' + exerciseLabel + ' · ' + liftCount + ' ' + liftLabel;
 }
 
 // ------------------------------------
@@ -435,12 +483,35 @@ function setDefaultRecordDate() {
     recordDate.value = localDate.toISOString().slice(0, 10);
 }
 
-addRecordBtn.addEventListener('click', () => {
+function openRecordDialog(exerciseId = '', exerciseName = '') {
+    if (!currentSession || saveRecordBtn.disabled) return;
+
+    exerciseSelect.querySelector('[data-quick-log]')?.remove();
     recordMessage.textContent = '';
     recordForm.reset();
+    if (exerciseId !== '') {
+        const id = String(exerciseId);
+        exerciseSelect.value = id;
+        if (exerciseSelect.value !== id) {
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = exerciseName;
+            option.dataset.quickLog = '';
+            exerciseSelect.appendChild(option);
+            exerciseSelect.value = id;
+        }
+    }
     recordNotes.closest('details').open = false;
     setDefaultRecordDate();
     recordDialog.showModal();
+}
+
+addRecordBtn.addEventListener('click', () => openRecordDialog());
+
+recordDialog.addEventListener('close', () => {
+    if (recordDialog.open) return;
+    exerciseSelect.querySelector('[data-quick-log]')?.remove();
+    if (availableExercises.length) renderExerciseOptions();
 });
 
 function closeRecordDialog() {
@@ -542,6 +613,9 @@ async function updateApplication(session) {
         currentUserEmail.textContent = 'My account';
         recordSummary.textContent = '';
         recordsGrid.replaceChildren();
+        availableExercises = [];
+        recentExerciseIds = [];
+        renderExerciseOptions();
 
         if (recordDialog.open) {
             recordDialog.close();
