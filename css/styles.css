@@ -202,21 +202,29 @@ h1 span {
     font-size: 24px;
 }
 
-.record-quick-log {
-    flex: 0 0 48px;
+.record-row-action {
+    flex: 0 0 44px;
     min-height: 44px;
     border: 0;
     border-left: 1px solid var(--border);
-    border-radius: 0 11px 11px 0;
     background: transparent;
     color: var(--accent);
     font-family: inherit;
-    font-size: 24px;
     cursor: pointer;
 }
 
+.record-quick-log {
+    font-size: 24px;
+}
+
+.record-percentages {
+    border-radius: 0 11px 11px 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
 .record-card:focus-visible,
-.record-quick-log:focus-visible {
+.record-row-action:focus-visible {
     z-index: 1;
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -224,7 +232,7 @@ h1 span {
 
 @media (hover: hover) {
     .record-card:hover,
-    .record-quick-log:hover {
+    .record-row-action:hover {
         background: var(--surface-hover);
     }
 }
@@ -623,4 +631,47 @@ h1 span {
     width: 100%;
     min-height: 44px;
     margin-top: 14px;
+}
+
+/* WEIGHT PERCENTAGES */
+
+.percent-basis {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 14px;
+}
+
+.percent-basis strong {
+    color: var(--accent);
+}
+
+.percent-basis small,
+.percent-table small {
+    font-size: inherit;
+}
+
+.percent-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+.percent-table th,
+.percent-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.percent-table thead th {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.percent-table tr > :last-child {
+    text-align: right;
+}
+
+.percent-table td {
+    font-weight: 700;
 }

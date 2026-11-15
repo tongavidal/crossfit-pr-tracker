@@ -7,7 +7,7 @@
 
     <title>PR Tracker</title>
 
-    <link rel="stylesheet" href="css/styles.css?v=6">
+    <link rel="stylesheet" href="css/styles.css?v=7">
 </head>
 <body>
 
@@ -163,6 +163,27 @@
                 </div>
             </dialog>
 
+            <dialog id="percentDialog" class="record-dialog" aria-labelledby="percentTitle" aria-describedby="percentBasis">
+                <div class="history-content">
+                    <div class="section-header">
+                        <h2 id="percentTitle"></h2>
+                        <form method="dialog">
+                            <button type="submit" class="dialog-close" aria-label="Close percentages" autofocus>✕</button>
+                        </form>
+                    </div>
+                    <p id="percentBasis" class="percent-basis">Personal best: <strong id="percentBest"></strong></p>
+                    <table class="percent-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">% of best</th>
+                                <th scope="col">Weight</th>
+                            </tr>
+                        </thead>
+                        <tbody id="percentRows"></tbody>
+                    </table>
+                </div>
+            </dialog>
+
             <!-- ADD RECORD DIALOG -->
             <dialog id="recordDialog" class="record-dialog" aria-labelledby="recordDialogTitle">
                 <form id="recordForm" class="record-form">
@@ -215,7 +236,7 @@
 
     </div>
 
-    <script type="module" src="js/app.js?v=6"></script>
+    <script type="module" src="js/app.js?v=7"></script>
 
 </body>
 </html>

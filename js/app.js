@@ -41,6 +41,10 @@ const historyBestWeight = document.getElementById('historyBestWeight');
 const historyList = document.getElementById('historyList');
 const historyMessage = document.getElementById('historyMessage');
 const historyMore = document.getElementById('historyMore');
+const percentDialog = document.getElementById('percentDialog');
+const percentTitle = document.getElementById('percentTitle');
+const percentBest = document.getElementById('percentBest');
+const percentRows = document.getElementById('percentRows');
 
 const HISTORY_PAGE_SIZE = 25;
 let activeHistory = null;
@@ -325,15 +329,23 @@ async function loadPersonalRecords() {
         card.append(details, weight, chevron);
         const quickLog = document.createElement('button');
         quickLog.type = 'button';
-        quickLog.className = 'record-quick-log';
+        quickLog.className = 'record-row-action record-quick-log';
         quickLog.textContent = '+';
         quickLog.setAttribute('aria-label', 'Log a lift for ' + record.exercise.name);
         quickLog.setAttribute('aria-haspopup', 'dialog');
         quickLog.addEventListener('click', () => openRecordDialog(record.exercise_id, record.exercise.name));
 
+        const percentages = document.createElement('button');
+        percentages.type = 'button';
+        percentages.className = 'record-row-action record-percentages';
+        percentages.textContent = '%';
+        percentages.setAttribute('aria-label', 'Weight percentages for ' + record.exercise.name);
+        percentages.setAttribute('aria-haspopup', 'dialog');
+        percentages.addEventListener('click', () => openWeightPercentages(record));
+
         const row = document.createElement('article');
         row.className = 'record-row';
-        row.append(card, quickLog);
+        row.append(card, quickLog, percentages);
         recordsGrid.appendChild(row);
     });
 
@@ -357,6 +369,31 @@ function renderWeight(element, value) {
     unit.textContent = 'kg';
     element.textContent = `${Number(value).toLocaleString('es-ES')} `;
     element.appendChild(unit);
+}
+
+function openWeightPercentages(record) {
+    if (!currentSession) return;
+
+    const bestInHundredths = Math.round(Number(record.weight_kg) * 100);
+    percentTitle.textContent = record.exercise.name + ' percentages';
+    renderWeight(percentBest, record.weight_kg);
+    percentRows.replaceChildren();
+
+    for (let percent = 50; percent <= 100; percent += 5) {
+        const row = document.createElement('tr');
+        const label = document.createElement('th');
+        label.scope = 'row';
+        label.textContent = percent + '%';
+
+        const weight = document.createElement('td');
+        const targetInHundredths = Math.round(bestInHundredths * percent / 100);
+        renderWeight(weight, targetInHundredths / 100);
+
+        row.append(label, weight);
+        percentRows.appendChild(row);
+    }
+
+    percentDialog.showModal();
 }
 
 function openExerciseHistory(record) {
@@ -621,6 +658,10 @@ async function updateApplication(session) {
             recordDialog.close();
         }
         if (historyDialog.open) historyDialog.close();
+        if (percentDialog.open) percentDialog.close();
+        percentTitle.textContent = '';
+        percentBest.replaceChildren();
+        percentRows.replaceChildren();
         activeHistory = null;
         historyTitle.textContent = '';
         historyBest.hidden = true;
